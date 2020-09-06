@@ -16,11 +16,12 @@ namespace treap //WARNING: NOT VERIFIED
 		4. INSERT x P: insert P after Ax. For example, performing "INSERT 2 4" on {1, 2, 3, 4, 5} results in {1, 2, 4, 3, 4, 5}
 		5. DELETE x: delete Ax. For example, performing "DELETE 2" on {1, 2, 3, 4, 5} results in {1, 3, 4, 5}
 		6. MIN x y: what is the minimum number in sub-sequence {Ax ... Ay}. For example, the correct answer to "MIN 2 4" on {1, 2, 3, 4, 5} is 2
-		7. SUM x y: what is the sum of all numbers in sub-sequence {Ax...Ay}. For example, the answer to "SUM 3 5" on {1, 2, 3, 4, 5} is 12
+		7. MAX x y: what is the maximum number in sub-sequence {Ax ... Ay}. For example, the correct answer to "MAX 2 4" on {1, 2, 3, 4, 5} is 4
+		8. SUM x y: what is the sum of all numbers in sub-sequence {Ax...Ay}. For example, the answer to "SUM 3 5" on {1, 2, 3, 4, 5} is 12
 	*/
 	typedef int node;
 
-	const int MAXN = 2e5 + 5, MAXS = 8e6, NIL = 0, oo = 1e9 + 5;
+	const int MAXN = 1e5 + 5, MAXS = 4e5 + 5, NIL = 0, oo = 1e9 + 5;
 
 	node lch[MAXS], rch[MAXS], root;
 	int val[MAXS],	//val[i] = value of array at corresponding index to node i
@@ -29,6 +30,7 @@ namespace treap //WARNING: NOT VERIFIED
 		acc[MAXS],	//acc[i] = accumulated value for sum in all the subtree rooted at node i
 		sum[MAXS],  //sum[i] = gets the sum of values of all nodes in the subtree rooted at node i
 		mim[MAXS],	//mim[i] = gets the minimum value of all nodes in the subreee rooted at node i
+		mam[MAXS],	//mam[i] = gets the maximum value of all nodes in the subreee rooted at node i
 		arr[MAXN],	//arr[i] = value of initial array at index i
 		sz;
 
@@ -44,6 +46,8 @@ namespace treap //WARNING: NOT VERIFIED
 	int get_sum (node t)	{	return t != NIL ? sum[t] : 0;	}
 
 	int get_min (node t)	{ 	return t != NIL ? mim[t] : oo;	}
+
+	int get_max (node t)	{ 	return t != NIL ? mam[t] : 0;	}
 
 	void push (node t)
 	{
@@ -84,6 +88,7 @@ namespace treap //WARNING: NOT VERIFIED
 			push(t);
 			debug2(lch[t]);
 			//cerr << "(val = " << val[t] << " min = " << get_min(t) << ") ";
+			//cerr << "(val = " << val[t] << " max = " << get_max(t) << ") ";
 			cerr << val[t] << " ";
 			debug2(rch[t]);
 		}
@@ -109,8 +114,10 @@ namespace treap //WARNING: NOT VERIFIED
 		{
 			cnt[t] = get_cnt(lch[t]) + get_cnt(rch[t]) + 1;
 			sum[t] = get_sum(lch[t]) + get_sum(rch[t]) + val[t];
-			int mc = min(get_min(lch[t]), get_min(rch[t]));
-			mim[t] = min(mc, val[t]);
+			int mic = min(get_min(lch[t]), get_min(rch[t]));
+			int mac = max(get_max(lch[t]), get_max(rch[t]));
+			mim[t] = min(mic, val[t]);
+			mam[t] = max(mac, val[t]);
 		}
 	}
 
@@ -119,6 +126,7 @@ namespace treap //WARNING: NOT VERIFIED
 		assert(sz < MAXS);
 		val[sz] = v;
 		mim[sz] = v;
+		mam[sz] = v;
 		lch[sz] = l;
 		rch[sz] = r;
 		update(sz);
@@ -254,6 +262,17 @@ namespace treap //WARNING: NOT VERIFIED
 		split(root, n1, n2, l);
 		split(n2, n2, n3, r - l + 1);
 		int ans = get_min(n2);
+		root = merge(n1, n2);
+		root = merge(root, n3);
+		return ans;
+	}
+
+	int max_query (int l, int r)
+	{
+		node n1, n2, n3;
+		split(root, n1, n2, l);
+		split(n2, n2, n3, r - l + 1);
+		int ans = get_max(n2);
 		root = merge(n1, n2);
 		root = merge(root, n3);
 		return ans;
